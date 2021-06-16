@@ -1,0 +1,60 @@
+node('develop') {
+    stage ('Checkout') {
+    	checkout scm
+    }
+    
+    stage ('Source package') {
+sh '''PKGVERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
+SOURCE_NAME=`cat debian/control |grep Source: | sed \'s/Source://g\' | sed \'s/ //g\'`
+dch -b -v ${PKGVERSION}.${BUILD_NUMBER}.dev \\"---new build---\\"
+mkdir -p tmp_src
+cd tmp_src
+dpkg-source -Itmp_src -b ../
+
+for i in `ls`; do
+curl -X POST -F file=@$i http://10.1.10.84:8080/api/files/upload_${SOURCE_NAME}_buster-ci-develop && rm $i
+done;
+# add files
+curl -X POST http://10.1.10.84:8080/api/repos/buster-ci-develop/file/upload_${SOURCE_NAME}_buster-ci-develop
+curl -X PUT -H 'Content-Type: application/json' --data '{}'  http://10.1.10.84:8080/api/publish//buster'''
+    }
+
+    stage ('Build package') {
+	try {
+sh '''PKGVERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
+SOURCE_NAME=`cat debian/control |grep Source: | sed \'s/Source://g\' | sed \'s/ //g\'`
+mkdir -p /dev/tmp
+export TMPDIR=/dev/tmp
+
+export MAKE_ARGS=-j16
+
+while true; do
+    apt-get update && break
+done
+apt-get build-dep -y ${SOURCE_NAME}
+apt-get source ${SOURCE_NAME}
+apt-get -y --new-pkgs upgrade
+
+cd ${SOURCE_NAME}-${PKGVERSION}.${BUILD_NUMBER}.dev
+dpkg-buildpackage -us -uc -b -rfakeroot
+cd ..
+
+for i in `ls *.deb`; do
+curl -X POST -F file=@$i http://10.1.10.84:8080/api/files/upload_${SOURCE_NAME}_buster-ci-develop
+done;
+curl -X POST http://10.1.10.84:8080/api/repos/buster-ci-develop/file/upload_${SOURCE_NAME}_buster-ci-develop
+curl -X PUT -H 'Content-Type: application/json' --data '{}' http://10.1.10.84:8080/api/publish//buster
+'''
+        	currentBuild.result = 'SUCCESS'	
+	} catch (err) {
+		currentBuild.result = 'FAILURE'
+		error('Build Failed')		
+	} finally {			
+		step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: emailextrecipients([requestor(), culprits()]), sendToIndividuals: true])
+	}
+    }
+
+    stage ('Post Build') {
+		archiveArtifacts artifacts: '*.deb', onlyIfSuccessful: true	
+    }
+}
