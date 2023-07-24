@@ -9,7 +9,7 @@ SOURCE_NAME=`cat debian/control |grep Source: | sed \'s/Source://g\' | sed \'s/ 
 dch -b -v ${PKGVERSION}.${BUILD_NUMBER}.bust  \\"---new build---\\"
 mkdir -p tmp_src
 cd tmp_src
-dpkg-source -Zgzip -I -Itmp_src -b ../
+dpkg-source -Zgzip -Itmp_src -b ../
 
 for i in `ls`; do
 curl -X POST -F file=@$i http://10.1.10.87:8080/api/files/upload_${SOURCE_NAME}_$DEBIAN_RELEASE-ci && rm $i
