@@ -6,7 +6,6 @@ node('develop') {
     stage ('Source package') {
 sh '''
 PKGVERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
-SOURCE_NAME=`cat debian/control |grep Source: | sed \'s/Source://g\' | sed \'s/ //g\'`
 dch -b -v ${PKGVERSION}.${BUILD_NUMBER}.dev \\"---new build---\\"
 mkdir -p tmp_src
 cd tmp_src
@@ -15,18 +14,9 @@ dpkg-source -Zgzip -I -Itmp_src -b ../
     }
 
     stage ('Publish source package') {
-sh '''
-cd tmp_src
-for i in `ls`; do
-curl -X POST -F file=@$i http://10.1.10.84:8080/api/files/upload_${SOURCE_NAME}_buster-ci-develop
-done;
-# add files
-curl -X POST http://10.1.10.84:8080/api/repos/buster-ci-develop/file/upload_${SOURCE_NAME}_buster-ci-develop
-curl -X PUT -H 'Content-Type: application/json' --data '{}'  http://10.1.10.84:8080/api/publish//buster
-'''
-
       withCredentials([usernamePassword(credentialsId: 'apt.registries.creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 sh '''
+SOURCE_NAME=`cat debian/control |grep Source: | sed \'s/Source://g\' | sed \'s/ //g\'`
 cd tmp_src
 # UPLOAD FILES TO TEMPORARY DIRECTORY IN LOOP
 for i in `ls`; do
@@ -35,7 +25,8 @@ done;
 # MOVE FILE FROM UPLOAD DIRECTORY TO REPOSITORY
 curl -k -u $USERNAME:$PASSWORD -X POST https://apt.registries.intranet.ips.su/upload/api/repos/buster-ci-develop/file/upload_${SOURCE_NAME}_buster-ci-develop
 # PUBLISH REPOSITORY TO PUBLIC (with sign)
-curl -k -u $USERNAME:$PASSWORD  -X PUT -H 'Content-Type: application/json' --data '{}' https://apt.registries.intranet.ips.su/upload/api/publish/:./buster
+curl -k -u $USERNAME:$PASSWORD -X PUT -H 'Content-Type: application/json' --data '{}' https://apt.registries.intranet.ips.su/upload/api/publish/:./buster
+curl -k -u $USERNAME:$PASSWORD -X POST https://apt.registries.intranet.ips.su/service/rest/v1/repositories/debian_ci_buster/invalidate-cache
 '''
         }
     }
@@ -68,16 +59,9 @@ dpkg-buildpackage -us -uc -b -rfakeroot
     }
 
     stage ('Publish package') {
-sh '''
-for i in `ls *.deb`; do
-curl -X POST -F file=@$i http://10.1.10.84:8080/api/files/upload_${SOURCE_NAME}_buster-ci-develop
-done;
-curl -X POST http://10.1.10.84:8080/api/repos/buster-ci-develop/file/upload_${SOURCE_NAME}_buster-ci-develop
-curl -X PUT -H 'Content-Type: application/json' --data '{}' http://10.1.10.84:8080/api/publish//buster
-'''
-
       withCredentials([usernamePassword(credentialsId: 'apt.registries.creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 sh '''
+SOURCE_NAME=`cat debian/control |grep Source: | sed \'s/Source://g\' | sed \'s/ //g\'`
 # UPLOAD FILES TO TEMPORARY DIRECTORY IN LOOP
 for i in `ls *.deb`; do
 curl -k -u $USERNAME:$PASSWORD -X POST -F file=@$i https://apt.registries.intranet.ips.su/upload/api/files/upload_${SOURCE_NAME}_buster-ci-develop
@@ -85,7 +69,8 @@ done;
 # MOVE FILE FROM UPLOAD DIRECTORY TO REPOSITORY
 curl -k -u $USERNAME:$PASSWORD -X POST https://apt.registries.intranet.ips.su/upload/api/repos/buster-ci-develop/file/upload_${SOURCE_NAME}_buster-ci-develop
 # PUBLISH REPOSITORY TO PUBLIC (with sign)
-curl -k -u $USERNAME:$PASSWORD  -X PUT -H 'Content-Type: application/json' --data '{}' https://apt.registries.intranet.ips.su/upload/api/publish/:./buster
+curl -k -u $USERNAME:$PASSWORD -X PUT -H 'Content-Type: application/json' --data '{}' https://apt.registries.intranet.ips.su/upload/api/publish/:./buster
+curl -k -u $USERNAME:$PASSWORD -X POST https://apt.registries.intranet.ips.su/service/rest/v1/repositories/debian_ci_buster/invalidate-cache
 '''
         }
     }
