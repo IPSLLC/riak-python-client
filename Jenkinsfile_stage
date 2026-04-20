@@ -6,7 +6,7 @@ node('stage') {
     stage ('Source package') {
 sh '''
 PKGVERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
-dch -b -v ${PKGVERSION}.${BUILD_NUMBER}.dev \\"---new build---\\"
+dch -b -v ${PKGVERSION}.${BUILD_NUMBER}.stage \\"---new build---\\"
 mkdir -p tmp_src
 cd tmp_src
 dpkg-source -Zgzip -I -Itmp_src -b ../
@@ -46,7 +46,7 @@ apt-get build-dep -y ${SOURCE_NAME}
 apt-get source ${SOURCE_NAME}
 apt-get -y --new-pkgs upgrade
 
-cd ${SOURCE_NAME}-${PKGVERSION}.${BUILD_NUMBER}.dev
+cd ${SOURCE_NAME}-${PKGVERSION}.${BUILD_NUMBER}.stage
 dpkg-buildpackage -us -uc -b -rfakeroot
 '''
 		currentBuild.result = 'SUCCESS'
