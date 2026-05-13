@@ -57,7 +57,7 @@ pipeline {
 
                             mkdir -p tmp_src
                             cd tmp_src
-                            dpkg-source -Zgzip -I -Itmp_src -b ../
+                            dpkg-source -Itmp_src -b ../
                         '''
                     }
                 }
