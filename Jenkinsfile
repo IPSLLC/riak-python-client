@@ -79,22 +79,18 @@ pipeline {
                                 for file in *; do
                                     curl -fsSL -u "$USERNAME:$PASSWORD" \
                                         -X POST -F "file=@${file}" \
-                                        "$APTLY_API_URL/files/upload_${SOURCE_NAME}"
+                                        "$APTLY_API_URL/files/upload_${SOURCE_NAME}_${BUILD_NUMBER}"
                                     rm "$file"
                                 done
 
                                 curl -fsSL -u "$USERNAME:$PASSWORD" \
                                     -X POST \
-                                    "$APTLY_API_URL/repos/$APT_REPOSITORY_NAME/file/upload_${SOURCE_NAME}"
+                                    "$APTLY_API_URL/repos/$APT_REPOSITORY_NAME/file/upload_${SOURCE_NAME}_${BUILD_NUMBER}"
 
                                 curl -fsSL -u "$USERNAME:$PASSWORD" \
                                     -X PUT -H 'Content-Type: application/json' \
                                     --data '{}' \
                                     "$APTLY_API_URL/publish/:./$APT_PREFIX"
-
-                                curl -fsSL -u "$USERNAME:$PASSWORD" \
-                                    -X POST \
-                                    "$NEXUS_API_URL/repositories/$NEXUS_REPOSITORY_NAME/invalidate-cache"
                             '''
                         }
                     }
@@ -138,21 +134,17 @@ pipeline {
 
                                     curl -fsSL -u "$USERNAME:$PASSWORD" \
                                         -X POST -F "file=@${file}" \
-                                        "$APTLY_API_URL/files/upload_${SOURCE_NAME}"
+                                        "$APTLY_API_URL/files/upload_${SOURCE_NAME}_${BUILD_NUMBER}"
                                 done
 
                                 curl -fsSL -u "$USERNAME:$PASSWORD" \
                                     -X POST \
-                                    "$APTLY_API_URL/repos/$APT_REPOSITORY_NAME/file/upload_${SOURCE_NAME}"
+                                    "$APTLY_API_URL/repos/$APT_REPOSITORY_NAME/file/upload_${SOURCE_NAME}_${BUILD_NUMBER}"
 
                                 curl -fsSL -u "$USERNAME:$PASSWORD" \
                                     -X PUT -H 'Content-Type: application/json' \
                                     --data '{}' \
                                     "$APTLY_API_URL/publish/:./$APT_PREFIX"
-
-                                curl -fsSL -u "$USERNAME:$PASSWORD" \
-                                    -X POST \
-                                    "$NEXUS_API_URL/repositories/$NEXUS_REPOSITORY_NAME/invalidate-cache"
                             '''
                         }
                     }
