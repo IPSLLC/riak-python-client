@@ -79,13 +79,13 @@ pipeline {
                                 for file in *; do
                                     curl -fsSL -u "$USERNAME:$PASSWORD" \
                                         -X POST -F "file=@${file}" \
-                                        "$APTLY_API_URL/files/upload_${SOURCE_NAME}_${BUILD_NUMBER}"
+                                        "$APTLY_API_URL/files/upload_${SOURCE_NAME}_${BUILD_NUMBER}_source"
                                     rm "$file"
                                 done
 
                                 curl -fsSL -u "$USERNAME:$PASSWORD" \
                                     -X POST \
-                                    "$APTLY_API_URL/repos/$APT_REPOSITORY_NAME/file/upload_${SOURCE_NAME}_${BUILD_NUMBER}"
+                                    "$APTLY_API_URL/repos/$APT_REPOSITORY_NAME/file/upload_${SOURCE_NAME}_${BUILD_NUMBER}_source"
 
                                 curl -fsSL -u "$USERNAME:$PASSWORD" \
                                     -X PUT -H 'Content-Type: application/json' \
