@@ -90,7 +90,7 @@ pipeline {
                                 curl -fsSL -u "$USERNAME:$PASSWORD" \
                                     -X PUT -H 'Content-Type: application/json' \
                                     --data '{}' \
-                                    "$APTLY_API_URL/publish/:./$APT_PREFIX"
+                                    "$APTLY_API_URL/publish/:$APT_PREFIX/$APT_DISTRIBUTION"
                             '''
                         }
                     }
@@ -144,7 +144,7 @@ pipeline {
                                 curl -fsSL -u "$USERNAME:$PASSWORD" \
                                     -X PUT -H 'Content-Type: application/json' \
                                     --data '{}' \
-                                    "$APTLY_API_URL/publish/:./$APT_PREFIX"
+                                    "$APTLY_API_URL/publish/:$APT_PREFIX/$APT_DISTRIBUTION"
                             '''
                         }
                     }
