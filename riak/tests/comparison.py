@@ -87,7 +87,7 @@ class Comparison(object):
 
         def _ordered_count(self, iterable):
             'Return dict of element counts, in the order they were first seen'
-            c = collections.OrderedDict()
+            c = collections.abc.OrderedDict()
             for elem in iterable:
                 c[elem] = c.get(elem, 0) + 1
             return c
@@ -108,8 +108,8 @@ class Comparison(object):
             first_seq, second_seq = list(expected_seq), list(actual_seq)
             with warnings.catch_warnings():
                 try:
-                    first = collections.Counter(first_seq)
-                    second = collections.Counter(second_seq)
+                    first = collections.abc.Counter(first_seq)
+                    second = collections.abc.Counter(second_seq)
                 except TypeError:
                     # Handle case with unhashable elements
                     differences = self._count_diff_all_purpose(first_seq,

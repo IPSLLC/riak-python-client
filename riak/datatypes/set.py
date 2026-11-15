@@ -21,7 +21,7 @@ from riak.datatypes import TYPES
 __all__ = ['Set']
 
 
-class Set(collections.Set, Datatype):
+class Set(collections.abc.Set, Datatype):
     """A convergent datatype representing a Set with observed-remove
     semantics. Currently strings are the only supported value type.
     Example::
@@ -116,7 +116,7 @@ class Set(collections.Set, Datatype):
         return frozenset(new_value)
 
     def _check_type(self, new_value):
-        if not isinstance(new_value, collections.Iterable):
+        if not isinstance(new_value, collections.abc.Iterable):
             return False
         for element in new_value:
             if not isinstance(element, string_types):
